@@ -320,7 +320,8 @@ function Start-Installation {
     Write-Log "  CoDrone Edu Vision Controller Installation Log  "
     Write-Log "=================================================="
     Write-Log "Target Installation Directory: $script:BaseDir"
-    Write-Log "OS Architecture: $([Environment]::Is64BitOperatingSystem ? '64-bit' : '32-bit')"
+    $arch = if ([Environment]::Is64BitOperatingSystem) { "64-bit" } else { "32-bit" }
+    Write-Log "OS Architecture: $arch"
     Write-Log "PowerShell Version: $($PSVersionTable.PSVersion)"
     Set-Progress 5
 
