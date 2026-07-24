@@ -51,7 +51,7 @@ Rotation-invariant 3D Euclidean distance ratio: $\text{Ratio} = \frac{\text{Dist
 * **Speed 3 (75%):** 3 Fingers Extended (Index + Middle + Ring) $\rightarrow$ 75% max translation speed.
 * **Speed 4 (100%):** 4 Fingers Extended (Index + Middle + Ring + Pinky) $\rightarrow$ 100% max translation speed.
 * **Safe Landing Signal:** Thumb Down with 4 non-thumb fingers folded into a fist
-* **Cyberpunk Sci-Fi Visual HUD Overlay:**
+* **Professional Visual HUD Overlay:**
   * **Top & Bottom HUD Bars:** Glassmorphic dark bars with neon green/cyan accent border lines.
   * **Viewfinder Corner Reticles:** 4-corner L-shaped camera viewfinder brackets matching state color.
   * **Dynamic Pill Badges:** System state (`MANUAL`) and speed presets (`SPEED_1`..`SPEED_4`) rendered in dark filled pill badges with thin neon borders.

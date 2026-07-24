@@ -1,8 +1,8 @@
 # 🛸 CoDrone Edu Vision Controller
 
-An AI-powered computer vision gesture flight controller for the **Robolink CoDrone Edu**, featuring **MediaPipe 3D Hand Landmark Tracking**, a **Cyberpunk Sci-Fi HUD Overlay**, a **Virtual 3D Joystick**, and **Real-Time Telemetry Logging**.
+An AI-powered computer vision gesture flight controller for the **Robolink CoDrone Edu**, featuring **MediaPipe 3D Hand Landmark Tracking**, a **Professional Visual HUD Overlay**, a **Virtual 3D Joystick**, and **Real-Time Telemetry Logging**.
 
-![Cyberpunk Sci-Fi HUD](https://img.shields.io/badge/UI-Cyberpunk_Sci--Fi_HUD-neon?style=for-the-badge)
+![Visual HUD Overlay](https://img.shields.io/badge/UI-Professional_HUD_Overlay-blue?style=for-the-badge)
 ![MediaPipe](https://img.shields.io/badge/AI-MediaPipe_0.10.21-blue?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.9+-yellow?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -19,7 +19,7 @@ An AI-powered computer vision gesture flight controller for the **Robolink CoDro
   - **Left Hand Hover Pause**: Closed fist pauses translation for safe pilot re-orientation.
   - **Left Hand Safe Landing**: Thumb-Down fist lands the drone safely.
   - **Crossed Wrists Deadman Killswitch**: Crossing wrists in an "X" posture engages instant hardware motor shutdown.
-- **🌌 Cyberpunk Sci-Fi Visual HUD Overlay**:
+- **🌌 Professional Visual HUD Overlay**:
   - Glassmorphic top & bottom status bars with neon accent borders.
   - Viewfinder corner reticles and dynamic mode pill badges.
   - Battery Icon Gauge with inner fill level bar and low-voltage color alerts.

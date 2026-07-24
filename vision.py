@@ -210,7 +210,7 @@ def vision_loop(mock_camera=False, enable_flight_log=False):
                         curr_ry = int(right_hand_landmarks.landmark[0].y * h)
                         cv2.line(image, (rx, ry), (curr_rx, curr_ry), (0, 255, 0), 2, cv2.LINE_AA)
 
-            # Dynamic HUD overlay (Full Cyberpunk Sci-Fi Design)
+            # Dynamic HUD overlay (Professional Visual HUD Design)
             w = image.shape[1]
             h = image.shape[0]
 
