@@ -19,12 +19,6 @@ An ML-powered computer vision gesture flight controller for the **Robolink CoDro
   - **Left Hand Hover Pause**: Closed fist pauses translation for safe pilot re-orientation.
   - **Left Hand Safe Landing**: Thumb-Down fist lands the drone safely.
   - **Crossed Wrists Deadman Killswitch**: Crossing wrists in an "X" posture engages instant hardware motor shutdown.
-- **🌌 Professional Visual HUD Overlay**:
-  - Glassmorphic top & bottom status bars with neon accent borders.
-  - Viewfinder corner reticles and dynamic mode pill badges.
-  - Battery Icon Gauge with inner fill level bar and low-voltage color alerts.
-  - Analog Pitch and Roll mini level bars on bottom bar.
-  - Resolution-adaptive text formatting (adapts cleanly to 640p, 720p, and 1080p windows).
 - **📊 Session Flight Monitoring & Frame Saver**:
   - Automatically records timestamped telemetry CSV logs and JPEG snapshot frames under `logs/session_YYYYMMDD_HHMMSS/`.
 
@@ -33,7 +27,7 @@ An ML-powered computer vision gesture flight controller for the **Robolink CoDro
 ## 🛠️ Hardware Requirements
 
 1. **Robolink CoDrone Edu** quadcopter.
-2. **CoDrone Edu USB Wireless Bluetooth Dongle** (connected to host machine).
+2. **CoDrone Edu Wireless Controller** (connected to host machine through usb-a to micro-usb).
 3. **Webcam** (USB webcam or laptop built-in camera).
 4. **Windows / macOS / Linux PC** running Python 3.9+.
 
