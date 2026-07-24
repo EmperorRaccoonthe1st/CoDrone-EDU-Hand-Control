@@ -319,8 +319,12 @@ function Refresh-Status {
     }
 }
 
+function Yield-UI {
+    [System.Windows.Threading.Dispatcher]::CurrentDispatcher.Invoke([Action]{}, [System.Windows.Threading.DispatcherPriority]::Background)
+}
+
 # ------------------------------------------------------------------------------
-# Installation Workflow Thread (Non-Blocking Task)
+# Installation Workflow Engine (PS 5.1 Native & Responsive)
 # ------------------------------------------------------------------------------
 function Start-Installation {
     # Lock all buttons during setup to prevent race conditions or invalid launches
@@ -337,151 +341,165 @@ function Start-Installation {
     Write-Log "OS Architecture: $arch"
     Write-Log "PowerShell Version: $($PSVersionTable.PSVersion)"
     Set-Progress 5
+    Yield-UI
 
-    [System.Threading.Tasks.Task]::Run([Action]{
-        try {
-            # 1. Source Code Retrieval (Standalone Mode)
-            if (-not (Test-Path $script:MainPy)) {
-                Write-Log "[1/4] Standalone mode detected! Downloading source code repository from GitHub..."
-                Set-Progress 10
-                $zipUrl = "https://github.com/EmperorRaccoonthe1st/CoDrone-EDU-Hand-Control/archive/refs/heads/main.zip"
-                $zipPath = Join-Path $script:BaseDir "repo.zip"
-                $extractTmp = Join-Path $script:BaseDir "repo_extract_tmp"
+    try {
+        # 1. Source Code Retrieval (Standalone Mode)
+        if (-not (Test-Path $script:MainPy)) {
+            Write-Log "[1/4] Standalone mode detected! Downloading source code repository from GitHub..."
+            Set-Progress 10
+            Yield-UI
 
-                $wc = New-Object System.Net.WebClient
-                $wc.DownloadFile($zipUrl, $zipPath)
-                Write-Log "[+] Repository archive downloaded successfully ($( (Get-Item $zipPath).Length ) bytes)."
-                Set-Progress 20
+            $zipUrl = "https://github.com/EmperorRaccoonthe1st/CoDrone-EDU-Hand-Control/archive/refs/heads/main.zip"
+            $zipPath = Join-Path $script:BaseDir "repo.zip"
+            $extractTmp = Join-Path $script:BaseDir "repo_extract_tmp"
 
-                Expand-Archive -Path $zipPath -DestinationPath $extractTmp -Force
-                $extractedFolder = Get-ChildItem $extractTmp | Select-Object -First 1
+            $wc = New-Object System.Net.WebClient
+            $wc.DownloadFile($zipUrl, $zipPath)
+            Write-Log "[+] Repository archive downloaded successfully ($( (Get-Item $zipPath).Length ) bytes)."
+            Set-Progress 20
+            Yield-UI
 
-                if ($extractedFolder) {
-                    Get-ChildItem $extractedFolder.FullName | Copy-Item -Destination $script:BaseDir -Recurse -Force
-                }
+            Expand-Archive -Path $zipPath -DestinationPath $extractTmp -Force
+            $extractedFolder = Get-ChildItem $extractTmp | Select-Object -First 1
 
-                Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
-                Remove-Item $extractTmp -Recurse -Force -ErrorAction SilentlyContinue
-                Write-Log "[+] Application files deployed cleanly."
-            } else {
-                Write-Log "[1/4] Application source files present."
+            if ($extractedFolder) {
+                Get-ChildItem $extractedFolder.FullName | Copy-Item -Destination $script:BaseDir -Recurse -Force
             }
 
-            Set-Progress 30
-
-            # 2. Check / Install Non-Admin Python
-            if (-not $script:PythonExe) {
-                Write-Log "[2/4] Python not detected. Downloading official Python 3.11.9 64-bit installer..."
-                Set-Progress 35
-                $installerUrl = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe"
-                $installerPath = Join-Path $script:BaseDir "python-installer.exe"
-
-                $wc = New-Object System.Net.WebClient
-                $wc.DownloadFile($installerUrl, $installerPath)
-                Write-Log "[+] Python installer downloaded ($( (Get-Item $installerPath).Length ) bytes)."
-                Write-Log "[*] Executing silent user-level Python installation..."
-                Set-Progress 45
-
-                # Silent non-admin install
-                $procInfo = New-Object System.Diagnostics.ProcessStartInfo
-                $procInfo.FileName = $installerPath
-                $procInfo.Arguments = "/quiet InstallAllUsers=0 PrependPath=1 Include_test=0 Include_pip=1 SimpleInstall=1"
-                $procInfo.UseShellExecute = $false
-                $procInfo.RedirectStandardOutput = $true
-                $procInfo.RedirectStandardError = $true
-
-                $proc = [System.Diagnostics.Process]::Start($procInfo)
-                $proc.WaitForExit()
-                
-                Write-Log "[+] Python installer finished with exit code: $($proc.ExitCode)"
-                Remove-Item $installerPath -Force -ErrorAction SilentlyContinue
-
-                # Refresh environment PATH in current session
-                $env:PATH = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-                $script:PythonExe = Find-SystemPython
-                Write-Log "[+] Detected Python executable: $script:PythonExe"
-            } else {
-                Write-Log "[2/4] Host Python environment detected: $script:PythonExe"
-            }
-
-            Set-Progress 60
-
-            # 3. Create Local Virtual Environment (.venv)
-            if (-not (Test-Path $script:VenvPython)) {
-                Write-Log "[3/4] Creating local virtual environment (.venv)..."
-                
-                $pInfo = New-Object System.Diagnostics.ProcessStartInfo
-                $pInfo.FileName = $script:PythonExe
-                $pInfo.Arguments = "-m venv `"$script:BaseDir\.venv`""
-                $pInfo.UseShellExecute = $false
-                $pInfo.RedirectStandardOutput = $true
-                $pInfo.RedirectStandardError = $true
-
-                $p = [System.Diagnostics.Process]::Start($pInfo)
-                $pStdOut = $p.StandardOutput.ReadToEnd()
-                $pStdErr = $p.StandardError.ReadToEnd()
-                $p.WaitForExit()
-
-                if ($p.ExitCode -eq 0) {
-                    Write-Log "[+] Virtual environment created at $script:BaseDir\.venv"
-                } else {
-                    Write-Log "[!] Virtual environment creation warning: $pStdErr"
-                }
-            } else {
-                Write-Log "[3/4] Virtual environment (.venv) already present."
-            }
-
-            Set-Progress 75
-
-            # 4. Install Dependencies from requirements.txt
-            Write-Log "[4/4] Installing dependencies (mediapipe==0.10.21, opencv-python, codrone-edu)..."
-            $pipExe = Join-Path $script:BaseDir ".venv\Scripts\pip.exe"
-            $reqPath = Join-Path $script:BaseDir "requirements.txt"
-
-            if (-not (Test-Path $reqPath)) {
-                "mediapipe==0.10.21`nopencv-python>=4.8.0.76`nnumpy>=1.24.3`ncodrone-edu>=1.9.0" | Out-File $reqPath -Encoding utf8
-            }
-
-            $pipInfo = New-Object System.Diagnostics.ProcessStartInfo
-            $pipInfo.FileName = $pipExe
-            $pipInfo.Arguments = "install -r `"$reqPath`""
-            $pipInfo.UseShellExecute = $false
-            $pipInfo.RedirectStandardOutput = $true
-            $pipInfo.RedirectStandardError = $true
-
-            $pipProc = [System.Diagnostics.Process]::Start($pipInfo)
-            
-            # Read stdout line by line for live progress logs
-            while (-not $pipProc.HasExited) {
-                $line = $pipProc.StandardOutput.ReadLine()
-                if ($line) { Write-Log "    pip: $line" }
-            }
-            $pipErr = $pipProc.StandardError.ReadToEnd()
-
-            if ($pipProc.ExitCode -eq 0) {
-                Write-Log "[+] All dependencies installed successfully!"
-            } else {
-                Write-Log "[!] Pip installation warning: $pipErr"
-            }
-
-            Set-Progress 100
-            Write-Log "=================================================="
-            Write-Log "  SETUP COMPLETE! System ready for drone flight.  "
-            Write-Log "=================================================="
-
-            $window.Dispatcher.Invoke([Action]{
-                $BtnInstall.IsEnabled = $true
-                Refresh-Status
-            })
-        } catch {
-            Write-Log "[!] CRITICAL SETUP ERROR: $_"
-            Write-Log "[!] Stack Trace: $($_.ScriptStackTrace)"
-            $window.Dispatcher.Invoke([Action]{ 
-                $BtnInstall.IsEnabled = $true 
-                Refresh-Status
-            })
+            Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
+            Remove-Item $extractTmp -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Log "[+] Application files deployed cleanly."
+        } else {
+            Write-Log "[1/4] Application source files present."
         }
-    })
+
+        Set-Progress 30
+        Yield-UI
+
+        # 2. Check / Install Non-Admin Python
+        if (-not $script:PythonExe) {
+            Write-Log "[2/4] Python not detected. Downloading official Python 3.11.9 64-bit installer..."
+            Set-Progress 35
+            Yield-UI
+
+            $installerUrl = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe"
+            $installerPath = Join-Path $script:BaseDir "python-installer.exe"
+
+            $wc = New-Object System.Net.WebClient
+            $wc.DownloadFile($installerUrl, $installerPath)
+            Write-Log "[+] Python installer downloaded ($( (Get-Item $installerPath).Length ) bytes)."
+            Write-Log "[*] Executing silent user-level Python installation..."
+            Set-Progress 45
+            Yield-UI
+
+            # Silent non-admin install
+            $procInfo = New-Object System.Diagnostics.ProcessStartInfo
+            $procInfo.FileName = $installerPath
+            $procInfo.Arguments = "/quiet InstallAllUsers=0 PrependPath=1 Include_test=0 Include_pip=1 SimpleInstall=1"
+            $procInfo.UseShellExecute = $false
+            $procInfo.RedirectStandardOutput = $true
+            $procInfo.RedirectStandardError = $true
+
+            $proc = [System.Diagnostics.Process]::Start($procInfo)
+            while (-not $proc.HasExited) {
+                Start-Sleep -Milliseconds 200
+                Yield-UI
+            }
+
+            Write-Log "[+] Python installer finished with exit code: $($proc.ExitCode)"
+            Remove-Item $installerPath -Force -ErrorAction SilentlyContinue
+
+            # Refresh environment PATH in current session
+            $env:PATH = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+            $script:PythonExe = Find-SystemPython
+            Write-Log "[+] Detected Python executable: $script:PythonExe"
+        } else {
+            Write-Log "[2/4] Host Python environment detected: $script:PythonExe"
+        }
+
+        Set-Progress 60
+        Yield-UI
+
+        # 3. Create Local Virtual Environment (.venv)
+        if (-not (Test-Path $script:VenvPython)) {
+            Write-Log "[3/4] Creating local virtual environment (.venv)..."
+            Set-Progress 65
+            Yield-UI
+
+            $pInfo = New-Object System.Diagnostics.ProcessStartInfo
+            $pInfo.FileName = $script:PythonExe
+            $pInfo.Arguments = "-m venv `"$script:BaseDir\.venv`""
+            $pInfo.UseShellExecute = $false
+            $pInfo.RedirectStandardOutput = $true
+            $pInfo.RedirectStandardError = $true
+
+            $p = [System.Diagnostics.Process]::Start($pInfo)
+            while (-not $p.HasExited) {
+                Start-Sleep -Milliseconds 200
+                Yield-UI
+            }
+            $pStdOut = $p.StandardOutput.ReadToEnd()
+            $pStdErr = $p.StandardError.ReadToEnd()
+
+            if ($p.ExitCode -eq 0) {
+                Write-Log "[+] Virtual environment created at $script:BaseDir\.venv"
+            } else {
+                Write-Log "[!] Virtual environment creation warning: $pStdErr"
+            }
+        } else {
+            Write-Log "[3/4] Virtual environment (.venv) already present."
+        }
+
+        Set-Progress 75
+        Yield-UI
+
+        # 4. Install Dependencies from requirements.txt
+        Write-Log "[4/4] Installing dependencies (mediapipe==0.10.21, opencv-python, codrone-edu)..."
+        Set-Progress 80
+        Yield-UI
+
+        $pipExe = Join-Path $script:BaseDir ".venv\Scripts\pip.exe"
+        $reqPath = Join-Path $script:BaseDir "requirements.txt"
+
+        if (-not (Test-Path $reqPath)) {
+            "mediapipe==0.10.21`nopencv-python>=4.8.0.76`nnumpy>=1.24.3`ncodrone-edu>=1.9.0" | Out-File $reqPath -Encoding utf8
+        }
+
+        $pipInfo = New-Object System.Diagnostics.ProcessStartInfo
+        $pipInfo.FileName = $pipExe
+        $pipInfo.Arguments = "install -r `"$reqPath`""
+        $pipInfo.UseShellExecute = $false
+        $pipInfo.RedirectStandardOutput = $true
+        $pipInfo.RedirectStandardError = $true
+
+        $pipProc = [System.Diagnostics.Process]::Start($pipInfo)
+
+        while (-not $pipProc.HasExited) {
+            $line = $pipProc.StandardOutput.ReadLine()
+            if ($line) { Write-Log "    pip: $line" }
+            Yield-UI
+        }
+        $pipErr = $pipProc.StandardError.ReadToEnd()
+
+        if ($pipProc.ExitCode -eq 0) {
+            Write-Log "[+] All dependencies installed successfully!"
+        } else {
+            Write-Log "[!] Pip installation warning: $pipErr"
+        }
+
+        Set-Progress 100
+        Write-Log "=================================================="
+        Write-Log "  SETUP COMPLETE! System ready for drone flight.  "
+        Write-Log "=================================================="
+    } catch {
+        Write-Log "[!] CRITICAL SETUP ERROR: $_"
+        Write-Log "[!] Stack Trace: $($_.ScriptStackTrace)"
+    } finally {
+        $BtnInstall.IsEnabled = $true
+        Refresh-Status
+        Yield-UI
+    }
 }
 
 # ------------------------------------------------------------------------------
