@@ -1,0 +1,6 @@
+# CoDrone Edu Vision Controller Dependencies
+# CRITICAL: MediaPipe version must be strictly 0.10.21 for landmark compatibility
+mediapipe==0.10.21
+opencv-python>=4.8.0.76
+numpy>=1.24.3
+codrone-edu>=1.9.0

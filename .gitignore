@@ -1,0 +1,33 @@
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments
+.venv/
+env/
+venv/
+ENV/
+
+# Flight Telemetry Logs & Snapshots
+logs/
+*.csv
+
+# Temporary Scratch Files & Media Storage
+scratch/
+.tempmediaStorage/
+Untitled-1.py
+import sys.py
+fly.py
+
+# IDE & OS Settings
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# PyInstaller Build Output
+build/
+dist/
+*.spec
