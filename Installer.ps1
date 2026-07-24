@@ -173,10 +173,10 @@ $script:LogFilePath = Join-Path $script:BaseDir "installer_debug.log"
                     Background="#0284C7" Foreground="#FFFFFF" FontWeight="Bold" FontSize="13" BorderThickness="0" IsEnabled="False"/>
 
             <Button x:Name="BtnMock" Grid.Column="4" Content="Dry-Run Test" Height="40" 
-                    Background="#27272A" Foreground="#F4F4F5"/>
+                    Background="#27272A" Foreground="#F4F4F5" IsEnabled="False"/>
 
             <Button x:Name="BtnBuildExe" Grid.Column="6" Content="Build Exe" Height="40" 
-                    Background="#27272A" Foreground="#F4F4F5"/>
+                    Background="#27272A" Foreground="#F4F4F5" IsEnabled="False"/>
         </Grid>
     </Grid>
 </Window>
@@ -295,19 +295,27 @@ function Refresh-Status {
     }
 
     # Check Dependencies (MediaPipe & CoDrone)
-    if (Test-Path $script:VenvPython) {
+    if ((Test-Path $script:VenvPython) -and (Test-Path $script:MainPy)) {
         $checkMp = & $script:VenvPython -c "import mediapipe, cv2, numpy, codrone_edu; print('OK')" 2>$null
         if ($checkMp -eq "OK") {
             $TxtDepStatus.Text = "Complete"
             $TxtDepStatus.Foreground = [System.Windows.Media.Brushes]::LimeGreen
             $BtnLaunch.IsEnabled = $true
+            $BtnMock.IsEnabled = $true
+            $BtnBuildExe.IsEnabled = $true
         } else {
             $TxtDepStatus.Text = "Incomplete"
             $TxtDepStatus.Foreground = [System.Windows.Media.Brushes]::Orange
+            $BtnLaunch.IsEnabled = $false
+            $BtnMock.IsEnabled = $false
+            $BtnBuildExe.IsEnabled = $false
         }
     } else {
         $TxtDepStatus.Text = "Not Installed"
         $TxtDepStatus.Foreground = [System.Windows.Media.Brushes]::Orange
+        $BtnLaunch.IsEnabled = $false
+        $BtnMock.IsEnabled = $false
+        $BtnBuildExe.IsEnabled = $false
     }
 }
 
@@ -315,7 +323,12 @@ function Refresh-Status {
 # Installation Workflow Thread (Non-Blocking Task)
 # ------------------------------------------------------------------------------
 function Start-Installation {
+    # Lock all buttons during setup to prevent race conditions or invalid launches
     $BtnInstall.IsEnabled = $false
+    $BtnLaunch.IsEnabled = $false
+    $BtnMock.IsEnabled = $false
+    $BtnBuildExe.IsEnabled = $false
+
     Write-Log "=================================================="
     Write-Log "  CoDrone Edu Vision Controller Installation Log  "
     Write-Log "=================================================="
@@ -457,33 +470,48 @@ function Start-Installation {
             Write-Log "=================================================="
 
             $window.Dispatcher.Invoke([Action]{
-                Refresh-Status
                 $BtnInstall.IsEnabled = $true
+                Refresh-Status
             })
         } catch {
             Write-Log "[!] CRITICAL SETUP ERROR: $_"
             Write-Log "[!] Stack Trace: $($_.ScriptStackTrace)"
-            $window.Dispatcher.Invoke([Action]{ $BtnInstall.IsEnabled = $true })
+            $window.Dispatcher.Invoke([Action]{ 
+                $BtnInstall.IsEnabled = $true 
+                Refresh-Status
+            })
         }
     })
 }
 
 # ------------------------------------------------------------------------------
-# Button Event Handlers
+# Button Event Handlers (With Validation Guards)
 # ------------------------------------------------------------------------------
 $BtnInstall.Add_Click({ Start-Installation })
 
 $BtnLaunch.Add_Click({
+    if (-not (Test-Path $script:VenvPython) -or -not (Test-Path $script:MainPy)) {
+        Write-Log "[!] Cannot launch: Installation incomplete. Please click '1. Install All' first."
+        return
+    }
     Write-Log "[*] Launching CoDrone Edu Vision Controller..."
     Start-Process -FilePath $script:VenvPython -ArgumentList "main.py" -WorkingDirectory $script:BaseDir
 })
 
 $BtnMock.Add_Click({
+    if (-not (Test-Path $script:VenvPython) -or -not (Test-Path $script:MainPy)) {
+        Write-Log "[!] Cannot launch: Installation incomplete. Please click '1. Install All' first."
+        return
+    }
     Write-Log "[*] Launching Dry-Run Simulation Mode..."
-    Start-Process -FilePath $script:VenvPython -ArgumentList "main.py --mock-drone --mock-camera" -WorkingDirectory $script:BaseDir
+    Start-Process -FilePath $script:VenvPython -ArgumentList "main.py", "--mock-drone", "--mock-camera" -WorkingDirectory $script:BaseDir
 })
 
 $BtnBuildExe.Add_Click({
+    if (-not (Test-Path $script:VenvPython) -or -not (Test-Path $script:MainPy)) {
+        Write-Log "[!] Cannot build executable: Installation incomplete. Please click '1. Install All' first."
+        return
+    }
     Write-Log "[*] Compiling Standalone Portable Executable..."
     [System.Threading.Tasks.Task]::Run([Action]{
         $pipExe = Join-Path $script:BaseDir ".venv\Scripts\pip.exe"
