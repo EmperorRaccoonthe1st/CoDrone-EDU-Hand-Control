@@ -29,5 +29,4 @@ Thumbs.db
 
 # PyInstaller Build Output
 build/
-dist/
 *.spec
