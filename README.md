@@ -1,4 +1,4 @@
-# 🛸 CoDrone Edu Vision Controller
+#  CoDrone Edu Vision Controller
 
 An ML-powered computer vision gesture flight controller for the **Robolink CoDrone Edu**, featuring **MediaPipe 3D Hand Landmark Tracking**, a **Virtual 3D Joystick**, and **Real-Time Telemetry Logging**.
 
@@ -9,9 +9,9 @@ An ML-powered computer vision gesture flight controller for the **Robolink CoDro
 
 ---
 
-## ✨ Features
+## Features
 
-- **🎮 Dual-Hand Gesture Flight Control**:
+- **Dual-Hand Gesture Flight Control**:
   - **Right Hand Point Up**: Launch takeoff & calibrate neutral flight baselines.
   - **Right Hand Thumbs-Up Joystick**: 3D orientation tilt for Roll, Pitch, and Yaw translation.
   - **Left Hand Altitude Throttle**: Screen height controls vertical climb & descent.
@@ -19,12 +19,12 @@ An ML-powered computer vision gesture flight controller for the **Robolink CoDro
   - **Left Hand Hover Pause**: Closed fist pauses translation for safe pilot re-orientation.
   - **Left Hand Safe Landing**: Thumb-Down fist lands the drone safely.
   - **Crossed Wrists Deadman Killswitch**: Crossing wrists in an "X" posture engages instant hardware motor shutdown.
-- **📊 Session Flight Monitoring & Frame Saver**:
+- **Session Flight Monitoring & Frame Saver**:
   - Automatically records timestamped telemetry CSV logs and JPEG snapshot frames under `logs/session_YYYYMMDD_HHMMSS/`.
 
 ---
 
-## 🛠️ Hardware Requirements
+## Hardware Requirements
 
 1. **Robolink CoDrone Edu** quadcopter.
 2. **CoDrone Edu Wireless Controller** (connected to host machine through usb-a to micro-usb).
@@ -33,7 +33,7 @@ An ML-powered computer vision gesture flight controller for the **Robolink CoDro
 
 ---
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### 1. Setup & Installation
 
@@ -83,7 +83,7 @@ python main.py --mock-drone --mock-camera
 
 ---
 
-## 🧪 Running Unit Tests
+## Running Unit Tests
 
 Run the complete test suite to verify system integrity:
 ```bash
