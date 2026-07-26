@@ -2,7 +2,6 @@
 
 An ML-powered computer vision gesture flight controller for the **Robolink CoDrone Edu**, featuring **MediaPipe 3D Hand Landmark Tracking**, a **Virtual 3D Joystick**, and **Real-Time Telemetry Logging**.
 
-![Visual HUD Overlay](https://img.shields.io/badge/UI-Professional_HUD_Overlay-blue?style=for-the-badge)
 ![MediaPipe](https://img.shields.io/badge/AI-MediaPipe_0.10.21-blue?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.9+-yellow?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
