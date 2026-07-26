@@ -35,16 +35,7 @@ An ML-powered computer vision gesture flight controller for the **Robolink CoDro
 
 ## 🚀 Quick Start Guide
 
-### Option 1: 1-Click Portable Windows Installer (USB Friendly)
-Simply double-click **`Installer.bat`** from Windows Explorer or your USB drive!
-- Automatically detects/installs Python if missing on a fresh Windows PC.
-- Sets up local isolated virtual environment (`.venv`).
-- Installs all dependencies (`mediapipe 0.10.21`, `opencv-python`, `codrone-edu`).
-- Launches the application or compiles a standalone `.exe`.
-
----
-
-### Option 2: Command Line Setup
+### 1. Setup & Installation
 
 ```bash
 git clone https://github.com/EmperorRaccoonthe1st/CoDrone-EDU-Hand-Control.git
