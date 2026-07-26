@@ -69,7 +69,7 @@ python main.py --mock-drone --mock-camera
 
 ---
 
-## 🎮 Gesture Control Reference
+## Gesture Control Reference
 
 | Gesture Posture | Hand | Action |
 | :--- | :--- | :--- |
@@ -92,6 +92,6 @@ python -m unittest discover tests
 
 ---
 
-## 📄 License
+## License
 
 Distributed under the MIT License. See `LICENSE` for details.
