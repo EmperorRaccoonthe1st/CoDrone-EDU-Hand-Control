@@ -6,6 +6,7 @@ __pycache__/
 
 # Environments
 .venv/
+.venv-310/
 env/
 venv/
 ENV/
@@ -21,12 +22,16 @@ Untitled-1.py
 import sys.py
 fly.py
 
+# LLM Specification & Context Documents
+CommandCenter/
+SEED.md
+
 # IDE & OS Settings
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 
-# PyInstaller Build Output
+# Build Output & Executable Distribution Directories
 build/
-*.spec
+dist/
